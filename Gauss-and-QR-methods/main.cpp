@@ -29,8 +29,6 @@ int main() {
     ConditionNumber<double>(filename, "QR", &isSingular);
 
     std::cout << "\nAll methods completed successfully.\n";
-    std::cout << "\nTesting\n";
-
 
     return 0;
 }
