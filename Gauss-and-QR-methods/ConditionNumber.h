@@ -201,7 +201,8 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
     }
 
     T* x_perturbed = new T[n + 1];
-    std::ifstream ans_file_pertubed(std::string("Gauss_answer") + perturbed_filename[4] + '_' + typeid(T).name() + ".txt");
+    std::string filename_pertubed = std::string(method_name) + std::string("_answer") + perturbed_filename[4] + "_pertubed_" + typeid(T).name() + ".txt";
+    std::ifstream ans_file_pertubed(filename_pertubed);
 
     if (!ans_file_pertubed.is_open()) {
         std::cerr << "Error: failed to open perturbed answer file\n";
@@ -219,9 +220,9 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
     //Проверяем, не выродилась ли матрица при расчете
     std::string first_token;
     ans_file_pertubed >> first_token;
+    ans_file_pertubed.close();
     if (first_token == "Error:") {
         std::cout << "\nError: pertubed matrix is degenerate\n";
-        ans_file_pertubed.close();
         delete[] b_perturbed;
         delete[] delta_b;
         delete[] x_perturbed;
@@ -232,10 +233,8 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
         delete[] b;
         return;
     }
-
-    // Возвращаем указатель в начало файла для считывания корней
-    ans_file_pertubed.clear();
-    ans_file_pertubed.seekg(0);
+    
+    ans_file_pertubed.open(filename_pertubed);
     for (int i = 1; i <= n; i++) {
         ans_file_pertubed >> x_perturbed[i];
     }
@@ -257,7 +256,7 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
     }
 
     T* x_original = new T[n + 1];
-    for (int i = 0; i <= n; i++) {
+    for (int i = 1; i <= n; i++) {
         ans_file >> x_original[i];
     }
     ans_file.close();

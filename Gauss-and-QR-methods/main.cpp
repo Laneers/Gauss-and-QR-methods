@@ -27,7 +27,5 @@ int main() {
     ConditionNumber<double>(filename, "Gauss", &isSingular_double);
     ConditionNumber<double>(filename, "QR", &isSingular_double);
 
-    std::cout << "\nAll methods completed successfully.\n";
-
     return 0;
 }
