@@ -7,7 +7,7 @@
 #include "Norms.h"
 
 template <typename T>
-void QR_method(const std::string& filename, bool* isSingular, bool pertubed = false) {
+void QR_method(const std::string filename, bool* isSingular, bool perturbed = false) {
     //Чтение данных из файла
     std::ifstream file(filename + ".txt");
     if (!file.is_open()) {
@@ -21,13 +21,11 @@ void QR_method(const std::string& filename, bool* isSingular, bool pertubed = fa
     T** R = new T * [n + 1];
     T** Q = new T * [n + 1];
     T** T_mat = new T * [n + 1];
-    T** A_inverse = new T * [n + 1];
     for (int i = 1; i <= n; i++) {
         A_original[i] = new T[n + 1];
         R[i] = new T[n + 1];
         Q[i] = new T[n + 1];
         T_mat[i] = new T[n + 1];
-        A_inverse[i] = new T[n + 1];
     }
     T* b = new T[n + 1];
 
@@ -61,7 +59,7 @@ void QR_method(const std::string& filename, bool* isSingular, bool pertubed = fa
             if (std::abs(R[j][i]) < std::numeric_limits<T>::epsilon() * 10) {
                 continue;
             }
-            T denominator = std::sqrt(R[i][i] * R[i][i] + R[i][j] * R[i][j]);
+            T denominator = std::sqrt(R[i][i] * R[i][i] + R[j][i] * R[j][i]);
             T c = R[i][i] / denominator;
             T s = R[j][i] / denominator;
 
@@ -83,7 +81,7 @@ void QR_method(const std::string& filename, bool* isSingular, bool pertubed = fa
 
     T norm_A = matrix_norm_inf(A_original, n);
     T threshold = std::numeric_limits<T>::epsilon() * norm_A * n;
-    *isSingular = false;
+    /*T threshold = typeid(T).name() == "double" ? 1e-12 : 1e-6;*/
     for (int i = 1; i <= n; i++) {
         if (std::fabs(R[i][i]) < threshold) {
             *isSingular = true;
@@ -91,9 +89,14 @@ void QR_method(const std::string& filename, bool* isSingular, bool pertubed = fa
         }
     }
 
+    std::string filename_ans = std::string("QR_answer") + filename[4] + '_' + typeid(T).name() + ".txt";
+    if (perturbed) {
+        filename_ans = std::string("QR_answer") + filename[4] + "_perturbed_" + typeid(T).name() + ".txt";
+    }
+
     if (*isSingular) {
-        std::cout << "\nError: matrix is degenerate\n";
-        std::ofstream out(std::string("QR_answer") + filename[4] + '_' + typeid(T).name() + ".txt");
+        std::cout << "\nErrorQ: matrix in " + filename + " is degenerate\n";
+        std::ofstream out(filename_ans);
         out << "Error: matrix is degenerate";
         out.close();
 
@@ -147,10 +150,6 @@ void QR_method(const std::string& filename, bool* isSingular, bool pertubed = fa
     normL2 = sqrt(normL2);
 
     //Выводим решения
-    std::string filename_ans = std::string("QR_answer") + filename[4] + "_pertubed_" + typeid(T).name() + ".txt";
-    if (pertubed) {
-        filename_ans = std::string("QR_answer") + filename[4] + "_pertubed_" + typeid(T).name() + ".txt";
-    }
     std::ofstream out(filename_ans);
     for (int i = 1; i <= n; i++) {
         out << x[i] << ' ';

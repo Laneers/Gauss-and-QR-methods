@@ -41,6 +41,9 @@ T** invert_matrix(const std::string& filename, bool* isSingular) {
     }
     file.close();
 
+    T norm_A = matrix_norm_inf(A_original, n); 
+    T threshold = std::numeric_limits<T>::epsilon() * norm_A * n;
+
     for (int col = 1; col <= n; col++) {
         for (int i = 1; i <= n; i++) {
             for (int j = 1; j <= n; j++) {
@@ -76,13 +79,13 @@ T** invert_matrix(const std::string& filename, bool* isSingular) {
 
         if (col == 1) {
             for (int i = 1; i <= n; i++) {
-                if (std::fabs(A[i][i]) < std::numeric_limits<T>::epsilon()) {
+                if (std::fabs(A[i][i]) < threshold) {
                     *isSingular = true;
                     break;
                 }
             }
             if (*isSingular) {
-                std::cout << "\nError: matrix is degenerate\n";
+                std::cout << "\nErrorI: matrix in " + filename + " is degenerate\n";
                 for (int i = 1; i <= n; i++) {
                     delete[] A[i];
                     delete[] A_original[i];
@@ -90,6 +93,8 @@ T** invert_matrix(const std::string& filename, bool* isSingular) {
                 }
                 delete[] A;
                 delete[] A_inverse;
+                delete[] A_original;
+                delete[] b;
                 return nullptr;
             }
         }
@@ -120,7 +125,7 @@ T** invert_matrix(const std::string& filename, bool* isSingular) {
 }
 
 template <typename T>
-void ConditionNumber(const std::string& filename, const std::string method_name, bool* isSingular) {
+void ConditionNumber(const std::string filename, const std::string method_name, T* delta_b, bool* isPerturbedSingular) {
     //Чтение данных из файла
     std::ifstream file(filename + ".txt");
     if (!file.is_open()) {
@@ -151,12 +156,13 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
     file.close();
 
     //Подсчёт норм
-    T** A_inv = invert_matrix<T>(filename, isSingular);
+    bool isInvertSingular = false;
+    T** A_inv = invert_matrix<T>(filename, &isInvertSingular);
 
     T cond_true_l1 = -1;
     T cond_true_inf = -1;
 
-    if (!(*isSingular) && A_inv != nullptr) {
+    if (!(isInvertSingular) && A_inv != nullptr) {
         T norm_A_l1 = matrix_norm_l1(A_original, n);
         T norm_A_inv_l1 = matrix_norm_l1(A_inv, n);
         cond_true_l1 = norm_A_l1 * norm_A_inv_l1;
@@ -171,43 +177,19 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
         delete[] A_inv;
     }
 
-    //Генерируем вектор b_perturbed = b + delta_b
-    T* b_perturbed = new T[n + 1];
-    T* delta_b = new T[n + 1];
-    T perturbation_amplitude = 1e-2;
-
-    for (int i = 1; i <= n; i++) {
-        T sign = (std::rand() % 2 == 0) ? 1.0 : -1.0;
-        delta_b[i] = sign * 0.01;
-        b_perturbed[i] = b[i] + delta_b[i];
-    }
-
-    std::string perturbed_filename = filename + "_perturbed";
-    std::ofstream file_p(perturbed_filename + ".txt");
-    file_p << n << "\n";
-    for (int i = 1; i <= n; i++) {
-        for (int j = 1; j <= n; j++) {
-            file_p << A_original[i][j] << " ";
-        }
-        file_p << b_perturbed[i] << "\n";
-    }
-    file_p.close();
-
     if (method_name == "Gauss") {
-        Gauss_method<T>(perturbed_filename, isSingular, true);
+        Gauss_method<T>(filename + "_perturbed", isPerturbedSingular, true);
     }
     if (method_name == "QR") {
-        QR_method<T>(perturbed_filename, isSingular, true);
+        QR_method<T>(filename + "_perturbed", isPerturbedSingular, true);
     }
 
     T* x_perturbed = new T[n + 1];
-    std::string filename_pertubed = std::string(method_name) + std::string("_answer") + perturbed_filename[4] + "_pertubed_" + typeid(T).name() + ".txt";
-    std::ifstream ans_file_pertubed(filename_pertubed);
+    std::string filename_pertubed_ans = std::string(method_name) + std::string("_answer") + filename[4] + "_perturbed_" + typeid(T).name() + ".txt";
+    std::ifstream ans_file_pertubed(filename_pertubed_ans);
 
     if (!ans_file_pertubed.is_open()) {
         std::cerr << "Error: failed to open perturbed answer file\n";
-        delete[] b_perturbed;
-        delete[] delta_b;
         delete[] x_perturbed;
         for (int i = 1; i <= n; i++) {
             delete[] A_original[i];
@@ -218,13 +200,8 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
     }
 
     //Проверяем, не выродилась ли матрица при расчете
-    std::string first_token;
-    ans_file_pertubed >> first_token;
-    ans_file_pertubed.close();
-    if (first_token == "Error:") {
-        std::cout << "\nError: pertubed matrix is degenerate\n";
-        delete[] b_perturbed;
-        delete[] delta_b;
+    if (*isPerturbedSingular) {
+        std::cout << "\nErrorC: pertubed matrix is degenerate\n";
         delete[] x_perturbed;
         for (int i = 1; i <= n; i++) {
             delete[] A_original[i];
@@ -234,18 +211,15 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
         return;
     }
     
-    ans_file_pertubed.open(filename_pertubed);
     for (int i = 1; i <= n; i++) {
         ans_file_pertubed >> x_perturbed[i];
     }
     ans_file_pertubed.close();
 
-    std::ifstream ans_file(std::string("Gauss_answer") + filename[4] + '_' + typeid(T).name() + ".txt");
+    std::ifstream ans_file(std::string(method_name) + "_answer" + filename[4] + '_' + typeid(T).name() + ".txt");
 
     if (!ans_file.is_open()) {
         std::cerr << "Error: failed to open answer file\n";
-        delete[] b_perturbed;
-        delete[] delta_b;
         delete[] x_perturbed;
         for (int i = 1; i <= n; i++) {
             delete[] A_original[i];
@@ -308,8 +282,11 @@ void ConditionNumber(const std::string& filename, const std::string method_name,
     std::cout << "Relative error b: " << (norm_delta_b_inf / norm_b_inf) << "\n";
     std::cout << "Relative error x: " << (norm_delta_x_inf / norm_x_inf) << "\n";
 
-    delete[] b_perturbed;
-    delete[] delta_b;
+    for (int i = 1; i <= n; i++) {
+        delete[] A_original[i];
+    }
+    delete[] A_original;
+    delete[] b;
     delete[] x_perturbed;
     delete[] delta_x;
 }

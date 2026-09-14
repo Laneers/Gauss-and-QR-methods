@@ -7,7 +7,7 @@
 #include "Norms.h"
 
 template <typename T>
-void Gauss_method(const std::string& filename, bool* isSingular, bool pertubed = false) {
+void Gauss_method(const std::string filename, bool* isSingular, bool perturbed = false) {
     //Чтение данных из файла
     std::ifstream file(filename + ".txt");
 
@@ -69,7 +69,7 @@ void Gauss_method(const std::string& filename, bool* isSingular, bool pertubed =
 
     T norm_A = matrix_norm_inf(A_original, n);
     T threshold = std::numeric_limits<T>::epsilon() * norm_A * n;
-    *isSingular = false;
+    /*T threshold = typeid(T).name() == "double" ? 1e-12 : 1e-6;*/
     for (int i = 1; i <= n; i++) {
         if (std::fabs(A[i][i]) < threshold) {
             *isSingular = true;
@@ -77,9 +77,14 @@ void Gauss_method(const std::string& filename, bool* isSingular, bool pertubed =
         }
     }
 
+    std::string filename_ans = std::string("Gauss_answer") + filename[4] + '_' + typeid(T).name() + ".txt";
+    if(perturbed) {
+        filename_ans = std::string("Gauss_answer") + filename[4] + "_perturbed_" + typeid(T).name() + ".txt";
+	}
+
     if (*isSingular) {
-        std::cout << "\nError: matrix is degenerate\n";
-        std::ofstream out(std::string("Gauss_answer") + filename[4] + '_' + typeid(T).name() + ".txt");
+        std::cout << "\nErrorG: matrix in " + filename + " is degenerate\n";
+        std::ofstream out(filename_ans);
         out << "Error: matrix is degenerate";
         out.close();
 
@@ -123,10 +128,6 @@ void Gauss_method(const std::string& filename, bool* isSingular, bool pertubed =
     normL2 = sqrt(normL2);
 
     //Выводим решения
-    std::string filename_ans = std::string("Gauss_answer") + filename[4] + '_' + typeid(T).name() + ".txt";
-    if (pertubed) {
-        filename_ans = (std::string("Gauss_answer") + filename[4] + "_pertubed_" + typeid(T).name() + ".txt");
-    }
     std::ofstream out(filename_ans);
     for (int i = 1; i <= n; i++) {
         out << x[i] << ' ';

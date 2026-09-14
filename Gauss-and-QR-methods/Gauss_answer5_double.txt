@@ -1,1 +1,2 @@
-Error: matrix is degenerate
+6.13905 -1002.47 0.0113928 -7.20974 
+NormL2 = 7.53644e-14
