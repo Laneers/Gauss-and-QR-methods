@@ -6,11 +6,8 @@
 #include "QR.h"
 #include "ConditionNumber.h"
 
-//double EPS_fl = 1e-6;
-//double EPS_db = 3*1e-16;
-
 void generate_perturbed_file(const std::string filename, double* delta_b) {
-    //Чтение данных из файла
+    //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     std::ifstream file(filename + ".txt");
     if (!file.is_open()) {
         std::cerr << "Error: failed to open file " << filename + ".txt" << "\n";
@@ -69,7 +66,7 @@ int main() {
     std::string filename;
     std::cin >> filename;
 
-    //Чтение данных из файла
+    //пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     std::ifstream file(filename + ".txt");
     if (!file.is_open()) {
         std::cerr << "Error: failed to open file " << filename + ".txt" << "\n";
@@ -85,7 +82,7 @@ int main() {
     double* delta_b_double = new double[n + 1];
     generate_perturbed_file(filename, delta_b_double); 
 
-    // Создаем float-копию возмущения
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ float-пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     float* delta_b_float = new float[n + 1];
     for (int i = 1; i <= n; i++) {
         delta_b_float[i] = static_cast<float>(delta_b_double[i]);
