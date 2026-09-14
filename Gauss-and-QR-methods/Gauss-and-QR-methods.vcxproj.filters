@@ -29,5 +29,8 @@
     <ClInclude Include="ConditionNumber.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="Norms.h">
+      <Filter>Исходные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

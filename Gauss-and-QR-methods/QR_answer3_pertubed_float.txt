@@ -1,0 +1,14 @@
+-nan(ind) -nan(ind) -nan(ind) -nan(ind) 
+NormL2 = -nan(ind)
+
+Matrix Q
+0.223275 -0.670256 -nan(ind) -nan(ind) 
+0.44655 0.427256 -nan(ind) -nan(ind) 
+0.17862 0.407879 -nan(ind) -nan(ind) 
+0.801083 -0.250003 -nan(ind) -nan(ind) 
+
+Matrix R
+4.67795 6.28282 7.0839 7.88499 
+0 0.99301 0.743006 0.493003 
+0 0 -nan(ind) -nan(ind) 
+0 -2.98023e-08 -nan(ind) -nan(ind) 

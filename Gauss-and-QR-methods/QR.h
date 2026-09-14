@@ -4,6 +4,8 @@
 #include <fstream>
 #include <cmath>
 
+#include "Norms.h"
+
 template <typename T>
 void QR_method(const std::string& filename, bool* isSingular, bool pertubed = false) {
     //Чтение данных из файла
@@ -79,12 +81,16 @@ void QR_method(const std::string& filename, bool* isSingular, bool pertubed = fa
         }
     }
 
+    T norm_A = matrix_norm_inf(A_original, n);
+    T threshold = std::numeric_limits<T>::epsilon() * norm_A * n;
+    *isSingular = false;
     for (int i = 1; i <= n; i++) {
-        if (fabs(R[i][i]) < std::numeric_limits<T>::epsilon() * 10) {
+        if (std::fabs(R[i][i]) < threshold) {
             *isSingular = true;
             break;
         }
     }
+
     if (*isSingular) {
         std::cout << "\nError: matrix is degenerate\n";
         std::ofstream out(std::string("QR_answer") + filename[4] + '_' + typeid(T).name() + ".txt");

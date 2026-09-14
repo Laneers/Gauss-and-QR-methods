@@ -4,6 +4,8 @@
 #include <fstream>
 #include <cmath>
 
+#include "Norms.h"
+
 template <typename T>
 void Gauss_method(const std::string& filename, bool* isSingular, bool pertubed = false) {
     //Чтение данных из файла
@@ -65,12 +67,16 @@ void Gauss_method(const std::string& filename, bool* isSingular, bool pertubed =
         }
     }
 
+    T norm_A = matrix_norm_inf(A_original, n);
+    T threshold = std::numeric_limits<T>::epsilon() * norm_A * n;
+    *isSingular = false;
     for (int i = 1; i <= n; i++) {
-        if (fabs(A[i][i]) < std::numeric_limits<T>::epsilon()) {
+        if (std::fabs(A[i][i]) < threshold) {
             *isSingular = true;
             break;
         }
     }
+
     if (*isSingular) {
         std::cout << "\nError: matrix is degenerate\n";
         std::ofstream out(std::string("Gauss_answer") + filename[4] + '_' + typeid(T).name() + ".txt");
